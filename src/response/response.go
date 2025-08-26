@@ -40,3 +40,9 @@ type ErrorDetails struct {
 	Message string      `json:"message"`
 	Errors  interface{} `json:"errors"`
 }
+type SuccessWithData struct {
+	Code    int         `json:"code"`
+	Status  string      `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
