@@ -4,6 +4,7 @@ import (
 	"app/src/config"
 	"app/src/database"
 	"app/src/middleware"
+	"app/src/model"
 	"app/src/router"
 	"app/src/utils"
 	"context"
@@ -61,9 +62,14 @@ func setupFiberApp() *fiber.App {
 }
 
 func setupDatabase() *gorm.DB {
-	db := database.Connect(config.DBHost, config.DBName)
-	// Add any additional database setup if needed
-	return db
+    db := database.Connect(config.DBHost, config.DBName)
+
+    // Ejecutar migraciones
+    if err := db.AutoMigrate(&model.PlanSuscripcion{}); err != nil {
+        utils.Log.Fatalf("Error al migrar PlanSuscripcion: %v", err)
+    }
+
+    return db
 }
 
 func setupRoutes(app *fiber.App, db *gorm.DB) {
