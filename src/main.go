@@ -65,12 +65,18 @@ func setupDatabase() *gorm.DB {
     db := database.Connect(config.DBHost, config.DBName)
 
     // Ejecutar migraciones
-    if err := db.AutoMigrate(&model.PlanSuscripcion{}); err != nil {
-        utils.Log.Fatalf("Error al migrar PlanSuscripcion: %v", err)
+    err := db.AutoMigrate(
+        &model.PlanSuscripcion{},
+        &model.User{},
+		&model.Token{},
+    )
+    if err != nil {
+        utils.Log.Fatalf("Error al migrar modelos: %v", err)
     }
 
     return db
 }
+
 
 func setupRoutes(app *fiber.App, db *gorm.DB) {
 	router.Routes(app, db)
