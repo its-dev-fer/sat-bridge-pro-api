@@ -5,7 +5,7 @@ CREATE TABLE suscripciones_usuario(
     limite_descargas_mensuales INT NOT NULL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
-    estatus ENUM('activo', 'cancelado', 'pendiente') NOT NULL,
+    estatus VARCHAR(20) NOT NULL CHECK (estatus IN ('activo', 'cancelado', 'pendiente')),
     CONSTRAINT fk_usuario_id FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_plan_id FOREIGN KEY (plan_id) REFERENCES planes_suscripcion(id) ON DELETE CASCADE
-)
+);
