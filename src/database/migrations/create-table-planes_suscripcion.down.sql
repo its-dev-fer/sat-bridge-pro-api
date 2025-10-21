@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS planes_suscripcion;
