@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -346,14 +347,14 @@ func (a *AuthController) GoogleCallback(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.Status(fiber.StatusOK).
-		JSON(response.SuccessWithTokens{
-			Code:    fiber.StatusOK,
-			Status:  "success",
-			Message: "Login successfully",
-			User:    *user,
-			Tokens:  *tokens,
-		})
+		googleLoginURL := fmt.Sprintf(
+		"http://localhost:5173/oauth-success?access_token=%s&refresh_token=%s",
+		tokens.Access.Token,
+		tokens.Refresh.Token,
+		)
+
+		return c.Redirect(googleLoginURL, fiber.StatusSeeOther)
+
 
 	// TODO: replace this url with the link to the oauth google success page of your front-end app
 	// googleLoginURL := fmt.Sprintf("http://link-to-app/google/success?access_token=%s&refresh_token=%s",
