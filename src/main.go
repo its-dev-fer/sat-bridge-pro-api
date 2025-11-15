@@ -41,7 +41,6 @@ func main() {
 
 	address := fmt.Sprintf("%s:%d", config.AppHost, config.AppPort)
 
-	// Start server and handle graceful shutdown
 	serverErrors := make(chan error, 1)
 	go startServer(app, address, serverErrors)
 	handleGracefulShutdown(ctx, app, serverErrors)
@@ -62,24 +61,36 @@ func setupFiberApp() *fiber.App {
 }
 
 func setupDatabase() *gorm.DB {
-    db := database.Connect(config.DBHost, config.DBName)
+	db := database.Connect(config.DBHost, config.DBName)
 
-    // Ejecutar migraciones
-    err := db.AutoMigrate(
-        &model.PlanSuscripcion{},
-        &model.User{},
+	// Ejecutar migraciones
+	err := db.AutoMigrate(
+		&model.User{},
 		&model.Token{},
-    )
-    if err != nil {
-        utils.Log.Fatalf("Error al migrar modelos: %v", err)
-    }
+		&model.SuscripcionUsuario{},
+		&model.PlanSuscripcion{},
+		&model.SolicitudDescarga{},
+		&model.CfdiDescargado{},
+	)
+	if err != nil {
+		utils.Log.Fatalf("Error al migrar modelos: %v", err)
+	}
 
-    return db
+	return db
 }
-
 
 func setupRoutes(app *fiber.App, db *gorm.DB) {
 	router.Routes(app, db)
+
+	// Debug: mostrar todas las rutas
+	app.Get("/debug/routes", func(c *fiber.Ctx) error {
+		var routes []string
+		for _, route := range app.GetRoutes(true) {
+			routes = append(routes, fmt.Sprintf("%s %s", route.Method, route.Path))
+		}
+		return c.JSON(routes)
+	})
+
 	app.Use(utils.NotFoundHandler)
 }
 
