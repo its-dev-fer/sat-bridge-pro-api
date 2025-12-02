@@ -4,6 +4,7 @@ import (
 	"app/src/config"
 	"app/src/utils"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -12,9 +13,16 @@ import (
 )
 
 func Connect(dbHost, dbName string) *gorm.DB {
+	cleanHost := dbHost
+	if strings.Contains(dbHost, ":") {
+		parts := strings.Split(dbHost, ":")
+		cleanHost = parts[0]
+		utils.Log.Infof("Cleaned host from '%s' to '%s'", dbHost, cleanHost)
+	}
+
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=Asia/Shanghai",
-		dbHost, config.DBUser, config.DBPassword, dbName, config.DBPort,
+		cleanHost, config.DBUser, config.DBPassword, dbName, config.DBPort,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{

@@ -28,6 +28,8 @@ var (
 	GoogleClientID      string
 	GoogleClientSecret  string
 	RedirectURL         string
+	PHPSatScraperURL    string
+	PHPSatScraperAPIKey string
 )
 
 func init() {
@@ -63,9 +65,15 @@ func init() {
 	GoogleClientID = viper.GetString("GOOGLE_CLIENT_ID")
 	GoogleClientSecret = viper.GetString("GOOGLE_CLIENT_SECRET")
 	RedirectURL = viper.GetString("REDIRECT_URL")
+
+	// PHP SAT Scraper configuration
+	PHPSatScraperURL = viper.GetString("PHP_SAT_SCRAPER_URL")
+	PHPSatScraperAPIKey = viper.GetString("PHP_SAT_SCRAPER_API_KEY")
 }
 
 func loadConfig() {
+
+	viper.AutomaticEnv()
 	configPaths := []string{
 		"./",     // For app
 		"../../", // For test folder
@@ -80,5 +88,9 @@ func loadConfig() {
 		}
 	}
 
-	utils.Log.Error("Failed to load any config file")
+	utils.Log.Infof("Database config - Host: %s, User: %s, DB: %s, Port: %d", 
+		viper.GetString("DB_HOST"), 
+		viper.GetString("DB_USER"),
+		viper.GetString("DB_NAME"),
+		viper.GetInt("DB_PORT"))
 }

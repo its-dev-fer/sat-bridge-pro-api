@@ -64,3 +64,8 @@ func Validator() *validator.Validate {
 
 	return validate
 }
+
+// New is an alias for Validator() for convenience
+func New() *validator.Validate {
+	return Validator()
+}

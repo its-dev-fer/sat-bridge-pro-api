@@ -34,6 +34,13 @@ type SuccessWithPaginate[T any] struct {
 	TotalResults int64  `json:"total_results"`
 }
 
+type Success struct {
+	Code    int         `json:"code"`
+	Status  string      `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
 type ErrorDetails struct {
 	Code    int         `json:"code"`
 	Status  string      `json:"status"`

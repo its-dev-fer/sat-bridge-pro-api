@@ -43,19 +43,29 @@ func Routes(app *fiber.App, db *gorm.DB) {
     AuthRoutes(v1, authService, userService, tokenService, emailService)
     UserRoutes(v1, userService, tokenService)
 
-
-
     // Planes de suscripción
     RegisterPlanSuscripcionRoutes(v1, planController)
     
     // Suscripciones de usuario
     RegisterSuscripcionUsuarioRoutes(v1, suscripcionUsuarioController)
 
-     // Solicitudes de descarga
+    // Solicitudes de descarga
     RegisterSolicitudDescargaRoutes(v1, solicitudDescargaController)
 
-     // CFDIs descargados
+    // CFDIs descargados
     RegisterCfdiDescargadoRoutes(v1, cfdiDescargadoController)
+
+    // FIEL (Firma Electrónica)
+    FirmaElectronicaRoutes(v1, db)
+
+    // CIEC
+    CIECRoutes(v1, db)
+
+    // SAT Downloads
+    SatDownloadRoutes(v1, db)
+
+    // Reports
+    ReportsRoutes(v1, db)
 
     if !config.IsProd {
         DocsRoutes(v1)

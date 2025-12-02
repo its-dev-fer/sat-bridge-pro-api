@@ -71,6 +71,7 @@ func setupDatabase() *gorm.DB {
 		&model.PlanSuscripcion{},
 		&model.SolicitudDescarga{},
 		&model.CfdiDescargado{},
+		&model.FirmaElectronica{},
 	)
 	if err != nil {
 		utils.Log.Fatalf("Error al migrar modelos: %v", err)
