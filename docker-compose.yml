@@ -1,13 +1,5 @@
-
 services:
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    networks:
-      - go-network
-
+  # PostgreSQL - Configuración probada y funcionando
   postgresdb:
     image: postgres:16
     container_name: postgresdb
@@ -22,41 +14,117 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: locura26
-      POSTGRES_DB: fiberdb
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-locura26}
+      POSTGRES_DB: ${DB_NAME:-fiberdb}
     volumes:
       - dbdata:/var/lib/postgresql/data
       - ./src/database/init:/docker-entrypoint-initdb.d
     networks:
-      - go-network
+      - sat-network
 
-
-
-  go-app:
-    build: .
-    image: go-app
+  # Adminer - Para gestión de BD
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
     ports:
-      - ${APP_PORT}:3000
+      - "8080:8080"
+    networks:
+      - sat-network
+    depends_on:
+      - postgresdb
+
+  # Backend Go - Tu aplicación principal
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sat-bridge-backend
+    container_name: sat_bridge_backend
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_HOST: 0.0.0.0
+      APP_PORT: 3000
+      DB_HOST: postgresdb:5432
+      DB_NAME: ${DB_NAME:-fiberdb}
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-locura26}
+      DB_PORT: 5432
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXP_MINUTES: ${JWT_ACCESS_EXP_MINUTES:-15}
+      JWT_REFRESH_EXP_DAYS: ${JWT_REFRESH_EXP_DAYS:-7}
+      JWT_RESET_PASSWORD_EXP_MINUTES: ${JWT_RESET_PASSWORD_EXP_MINUTES:-10}
+      JWT_VERIFY_EMAIL_EXP_MINUTES: ${JWT_VERIFY_EMAIL_EXP_MINUTES:-15}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+      PHP_SAT_SCRAPER_URL: http://php-scraper:80
+      PHP_SAT_SCRAPER_API_KEY: ${PHP_SAT_SCRAPER_API_KEY}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      REDIRECT_URL: ${REDIRECT_URL}
     depends_on:
       postgresdb:
         condition: service_healthy
+      php-scraper:
+        condition: service_started
     volumes:
       - .:/usr/src/go-app
-    restart: on-failure
+    restart: unless-stopped
     env_file:
       - .env
     networks:
-      - go-network
+      - sat-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "${APP_URL}/v1/health-check"]
-      interval: 40s
-      timeout: 30s
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/v1/health-check"]
+      interval: 30s
+      timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 40s
+
+  # PHP SAT Scraper - Microservicio para descargas del SAT
+  php-scraper:
+    build:
+      context: ./php-sat-scraper
+      dockerfile: Dockerfile
+    image: sat-bridge-php-scraper
+    container_name: sat_bridge_php_scraper
+    ports:
+      - "8081:80"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      API_KEY: ${PHP_SAT_SCRAPER_API_KEY}
+      CAPTCHA_RESOLVER_TOKEN: ${CAPTCHA_RESOLVER_TOKEN}
+      STORAGE_PATH: /var/www/html/storage/cfdis
+      LOG_PATH: /var/www/html/logs
+      LOG_LEVEL: info
+      MAX_QUERIES_PER_REQUEST: "${MAX_QUERIES_PER_REQUEST:-500}"
+    volumes:
+      - php_storage:/var/www/html/storage
+      - php_logs:/var/www/html/logs
+    networks:
+      - sat-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
 volumes:
   dbdata:
+    driver: local
+  php_storage:
+    driver: local
+  php_logs:
+    driver: local
 
 networks:
-  go-network:
+  sat-network:
     driver: bridge

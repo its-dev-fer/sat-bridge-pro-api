@@ -1,413 +1,433 @@
-# RESTful API Go Fiber Boilerplate
+# SAT Bridge Pro API 🚀
 
 ![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat&logo=go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/indrayyana/go-fiber-boilerplate)](https://goreportcard.com/report/github.com/indrayyana/go-fiber-boilerplate)
+![PHP Version](https://img.shields.io/badge/PHP-8.0+-777BB4?style=flat&logo=php)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-![Repository size](https://img.shields.io/github/repo-size/indrayyana/go-fiber-boilerplate?color=56BEB8)
-![Build](https://github.com/indrayyana/go-fiber-boilerplate/workflows/Build/badge.svg)
-![Test](https://github.com/indrayyana/go-fiber-boilerplate/workflows/Test/badge.svg)
-![Linter](https://github.com/indrayyana/go-fiber-boilerplate/workflows/Linter/badge.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-316192?style=flat&logo=postgresql)
 
-A boilerplate/starter project for quickly building RESTful APIs using Go, Fiber, and PostgreSQL. Inspired by the Express boilerplate.
+> Sistema completo de gestión y descarga automatizada de CFDIs desde el portal del SAT, con control de suscripciones y generación de reportes contables.
 
-The app comes with many built-in features, such as authentication using JWT and Google OAuth2, request validation, unit and integration tests, docker support, API documentation, pagination, etc. For more details, check the features list below.
+## 🌟 Características Principales
 
-## Quick Start
+- ✅ **Descarga Automatizada de CFDIs** desde el portal del SAT
+- ✅ **Autenticación Dual**: CIEC y FIEL (Firma Electrónica)
+- ✅ **Gestión de Suscripciones** con planes Básico, Pro y Empresarial
+- ✅ **Reportes Contables** detallados (mensuales, anuales, por proveedor/cliente)
+- ✅ **Control de Límites** de descarga por plan
+- ✅ **Almacenamiento Seguro** de certificados FIEL con encriptación AES-256-GCM
+- ✅ **Resolución Automática de Captchas** con BoxFactura AI
+- ✅ **API RESTful** completa con documentación Swagger
+- ✅ **Arquitectura de Microservicios** (Go + PHP)
+- ✅ **Docker Ready** para despliegue fácil
 
-To create a project, simply run:
+## 📋 Tabla de Contenidos
+
+- [Inicio Rápido](#-inicio-rápido)
+- [Características Detalladas](#-características-detalladas)
+- [Arquitectura](#-arquitectura)
+- [Instalación](#-instalación)
+- [Documentación](#-documentación)
+- [Endpoints API](#-endpoints-api)
+- [Ejemplos de Uso](#-ejemplos-de-uso)
+- [Despliegue](#-despliegue)
+- [Testing](#-testing)
+- [Contribuir](#-contribuir)
+
+## 🚀 Inicio Rápido
+
+### Opción 1: Con Docker (Recomendado - Un solo comando)
 
 ```bash
-go mod init <project-name>
+# 1. Clonar repositorio
+git clone https://github.com/tu-usuario/sat-bridge-pro-api.git
+cd sat-bridge-pro-api
+
+# 2. Configurar variables de entorno (opcional, hay valores por defecto)
+cp env.example .env
+nano .env  # Editar si necesitas cambiar algo
+
+# 3. ¡Iniciar todo!
+./start.sh
+
+# O directamente:
+docker-compose up -d
 ```
 
-## Manual Installation
+**¡Eso es todo!** El sistema completo se levanta automáticamente:
+- ✅ Backend Go en http://localhost:3000
+- ✅ Swagger UI en http://localhost:3000/v1/docs
+- ✅ PHP Scraper en http://localhost:8081
+- ✅ PostgreSQL en localhost:5432
+- ✅ Adminer en http://localhost:8080
 
-If you would still prefer to do the installation manually, follow these steps:
-
-Clone the repo:
+### Opción 2: Sin Docker (Desarrollo)
 
 ```bash
-git clone --depth 1 https://github.com/indrayyana/go-fiber-boilerplate.git
-cd go-fiber-boilerplate
-rm -rf ./.git
+# 1. Prerequisitos
+# - Go 1.22.5+, PHP 8.0+, PostgreSQL 14+, Composer
+
+# 2. Configurar
+cp env.example .env
+createdb fiberdb
+
+# 3. Instalar dependencias
+go mod download
+cd php-sat-scraper && composer install && cd ..
+
+# 4. Iniciar servicios (2 terminales)
+# Terminal 1: Backend Go
+go run src/main.go
+
+# Terminal 2: PHP Scraper
+cd php-sat-scraper && composer start
 ```
 
-Install the dependencies:
+## ✨ Características Detalladas
 
-```bash
-go mod tidy
+### 🔐 Autenticación y Seguridad
+
+- **JWT Authentication** con tokens de acceso y renovación
+- **OAuth2 con Google**
+- **Encriptación AES-256-GCM** para credenciales SAT
+- **Reset de contraseña** por email
+- **Verificación de email**
+- **Sistema de roles** (user/admin)
+- **Rate limiting** en endpoints críticos
+
+### 📝 Gestión de FIEL y CIEC
+
+- **Almacenamiento seguro** de certificados .cer y .key en base64
+- **Encriptación** de contraseñas de FIEL
+- **Validación de vigencia** de certificados
+- **Múltiples FIELs** por usuario
+- **CIEC encriptado** como alternativa a FIEL
+
+### ⬇️ Descarga de CFDIs
+
+- **Autenticación CIEC o FIEL** con el SAT
+- **Filtros avanzados**:
+  - Por tipo (emitidos/recibidos)
+  - Por rango de fechas
+  - Por RFC emisor/receptor
+  - Por estado (activo/cancelado)
+  - Por complemento
+- **Descarga por UUID** específico
+- **Consulta de metadatos** sin consumir cuota
+- **Almacenamiento automático** en base de datos
+- **Gestión de XMLs** en base64
+
+### 💳 Planes de Suscripción
+
+| Plan | Descargas/Mes | Precio | Características |
+|------|---------------|--------|-----------------|
+| **Básico** | 10 | $299 | Ideal para freelancers |
+| **Pro** | 30 | $599 | Para pequeñas empresas |
+| **Empresarial** | Ilimitadas* | $1,999 | Para grandes empresas |
+
+*Ilimitadas con más de 5 usuarios
+
+### 📊 Reportes Contables
+
+- **Reporte mensual** con top proveedores y clientes
+- **Reporte anual** con desglose mensual
+- **Resumen de gastos** por proveedor
+- **Resumen de ingresos** por cliente
+- **CFDIs por rango de fechas**
+- **Totales de ingresos y egresos**
+- **Análisis por tipo y estado**
+
+## 🏗️ Arquitectura
+
+```
+┌─────────────────┐
+│   Frontend      │
+│  (React/Vue)    │
+└────────┬────────┘
+         │ HTTPS/REST
+         ▼
+┌─────────────────┐
+│   Backend Go    │◄─── JWT Auth
+│   (Fiber)       │◄─── Business Logic
+└────────┬────────┘
+         │ HTTP
+         ▼
+┌─────────────────┐
+│  PHP Scraper    │◄─── SAT Portal
+│  (PhpCfdi)      │◄─── Captcha Resolver
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  PostgreSQL     │◄─── Data Storage
+│  Database       │
+└─────────────────┘
 ```
 
-Set the environment variables:
+### Tecnologías
 
-```bash
-cp .env.example .env
+**Backend Go:**
+- Fiber v2 - Framework web
+- GORM - ORM
+- JWT - Autenticación
+- Viper - Configuración
+- Validator - Validación
 
-# open .env and modify the environment variables (if needed)
-```
+**Microservicio PHP:**
+- PhpCfdi/CfdiSatScraper - Scraping del SAT
+- PhpCfdi/ImageCaptchaResolver - Captchas
+- Guzzle - Cliente HTTP
+- Monolog - Logging
 
-## Table of Contents
+**Base de Datos:**
+- PostgreSQL 14+
+- Migraciones con GORM AutoMigrate
 
-- [Features](#features)
-- [Commands](#commands)
-- [Environment Variables](#environment-variables)
-- [Project Structure](#project-structure)
-- [API Documentation](#api-documentation)
-- [Error Handling](#error-handling)
-- [Validation](#validation)
-- [Authentication](#authentication)
-- [Authorization](#authorization)
-- [Logging](#logging)
-- [Linting](#linting)
-- [Contributing](#contributing)
+## 📦 Instalación
 
-## Features
+Ver [SETUP_GUIDE.md](./SETUP_GUIDE.md) para instrucciones detalladas de instalación.
 
-- **SQL database**: [PostgreSQL](https://www.postgresql.org) Object Relation Mapping using [Gorm](https://gorm.io)
-- **Database migrations**: with [golang-migrate](https://github.com/golang-migrate/migrate)
-- **Validation**: request data validation using [Package validator](https://github.com/go-playground/validator)
-- **Logging**: using [Logrus](https://github.com/sirupsen/logrus) and [Fiber-Logger](https://docs.gofiber.io/api/middleware/logger)
-- **Testing**: unit and integration tests using [Testify](https://github.com/stretchr/testify) and formatted test output using [gotestsum](https://github.com/gotestyourself/gotestsum)
-- **Error handling**: centralized error handling mechanism
-- **API documentation**: with [Swag](https://github.com/swaggo/swag) and [Swagger](https://github.com/gofiber/swagger)
-- **Sending email**: using [Gomail](https://github.com/go-gomail/gomail)
-- **Environment variables**: using [Viper](https://github.com/spf13/viper)
-- **Security**: set security HTTP headers using [Fiber-Helmet](https://docs.gofiber.io/api/middleware/helmet)
-- **CORS**: Cross-Origin Resource-Sharing enabled using [Fiber-CORS](https://docs.gofiber.io/api/middleware/cors)
-- **Compression**: gzip compression with [Fiber-Compress](https://docs.gofiber.io/api/middleware/compress)
-- **Docker support**
-- **Linting**: with [golangci-lint](https://golangci-lint.run)
+### Configuración Rápida
 
-## Commands
+1. **Variables de Entorno (.env)**
 
-Running locally:
-
-```bash
-make start
-```
-
-Or running with live reload:
-
-```bash
-air
-```
-
-> [!NOTE]
-> Make sure you have `Air` installed.\
-> See 👉 [How to install Air](https://github.com/air-verse/air)
-
-Testing:
-
-```bash
-# run all tests
-make tests
-
-# run all tests with gotestsum format
-make testsum
-
-# run test for the selected function name
-make tests-TestUserModel
-```
-
-Docker:
-
-```bash
-# run docker container
-make docker
-
-# run all tests in a docker container
-make docker-test
-```
-
-Linting:
-
-```bash
-# run lint
-make lint
-```
-
-Swagger:
-
-```bash
-# generate the swagger documentation
-make swagger
-```
-
-Migration:
-
-```bash
-# Create migration
-make migration-<table-name>
-
-# Example for table users
-make migration-users
-```
-
-```bash
-# run migration up in local
-make migrate-up
-
-# run migration down in local
-make migrate-down
-
-# run migration up in docker container
-make migrate-docker-up
-
-# run migration down all in docker container
-make migrate-docker-down
-```
-
-## Environment Variables
-
-The environment variables can be found and modified in the `.env` file. They come with these default values:
-
-```bash
-# server configuration
-# Env value : prod || dev
-APP_ENV=dev
-APP_HOST=0.0.0.0
+```env
+APP_ENV=development
 APP_PORT=3000
 
-# database configuration
-DB_HOST=postgresdb
-DB_USER=postgres
-DB_PASSWORD=thisisasamplepassword
-DB_NAME=fiberdb
-DB_PORT=5432
+DB_HOST=localhost:5432
+DB_NAME=sat_bridge_pro
+DB_PASSWORD=tu_password
 
-# JWT
-# JWT secret key
-JWT_SECRET=thisisasamplesecret
-# Number of minutes after which an access token expires
-JWT_ACCESS_EXP_MINUTES=30
-# Number of days after which a refresh token expires
-JWT_REFRESH_EXP_DAYS=30
-# Number of minutes after which a reset password token expires
-JWT_RESET_PASSWORD_EXP_MINUTES=10
-# Number of minutes after which a verify email token expires
-JWT_VERIFY_EMAIL_EXP_MINUTES=10
+JWT_SECRET=tu_secret_minimo_32_caracteres
 
-# SMTP configuration options for the email service
-SMTP_HOST=email-server
-SMTP_PORT=587
-SMTP_USERNAME=email-server-username
-SMTP_PASSWORD=email-server-password
-EMAIL_FROM=support@yourapp.com
+PHP_SAT_SCRAPER_URL=http://localhost:8080
+PHP_SAT_SCRAPER_API_KEY=clave_secreta_compartida
 
-# OAuth2 configuration
-GOOGLE_CLIENT_ID=yourapps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=thisisasamplesecret
-REDIRECT_URL=http://localhost:3000/v1/auth/google-callback
+CAPTCHA_RESOLVER_TOKEN=tu_token_boxfactura
 ```
 
-## Project Structure
+2. **Base de Datos**
 
-```
-src\
- |--config\         # Environment variables and configuration related things
- |--controller\     # Route controllers (controller layer)
- |--database\       # Database connection & migrations
- |--docs\           # Swagger files
- |--middleware\     # Custom fiber middlewares
- |--model\          # Postgres models (data layer)
- |--response\       # Response models
- |--router\         # Routes
- |--service\        # Business logic (service layer)
- |--utils\          # Utility classes and functions
- |--validation\     # Request data validation schemas
- |--main.go         # Fiber app
+```bash
+# Crear base de datos
+createdb sat_bridge_pro
+
+# Las migraciones se ejecutan automáticamente al iniciar
 ```
 
-## API Documentation
+3. **Iniciar Servicios**
 
-To view the list of available APIs and their specifications, run the server and go to `http://localhost:3000/v1/docs` in your browser.
+```bash
+# Backend Go (con hot reload)
+air
 
-![Auth](https://indrayyana.github.io/assets/images/swagger1.png)
-![User](https://indrayyana.github.io/assets/images/swagger2.png)
-
-This documentation page is automatically generated using the [Swag](https://github.com/swaggo/swag) definitions written as comments in the controller files.
-
-See 👉 [Declarative Comments Format.](https://github.com/swaggo/swag#declarative-comments-format)
-
-## API Endpoints
-
-List of available routes:
-
-**Auth routes**:\
-`POST /v1/auth/register` - register\
-`POST /v1/auth/login` - login\
-`POST /v1/auth/logout` - logout\
-`POST /v1/auth/refresh-tokens` - refresh auth tokens\
-`POST /v1/auth/forgot-password` - send reset password email\
-`POST /v1/auth/reset-password` - reset password\
-`POST /v1/auth/send-verification-email` - send verification email\
-`POST /v1/auth/verify-email` - verify email\
-`GET /v1/auth/google` - login with google account
-
-**User routes**:\
-`POST /v1/users` - create a user\
-`GET /v1/users` - get all users\
-`GET /v1/users/:userId` - get user\
-`PATCH /v1/users/:userId` - update user\
-`DELETE /v1/users/:userId` - delete user
-
-## Error Handling
-
-The app includes a custom error handling mechanism, which can be found in the `src/utils/error.go` file.
-
-It also utilizes the `Fiber-Recover` middleware to gracefully recover from any panic that might occur in the handler stack, preventing the app from crashing unexpectedly.
-
-The error handling process sends an error response in the following format:
-
-```json
-{
-  "code": 404,
-  "status": "error",
-  "message": "Not found"
-}
+# PHP Microservice
+cd php-sat-scraper && composer start
 ```
 
-Fiber provides a custom error struct using `fiber.NewError()`, where you can specify a response code and a message. This error can then be returned from any part of your code, and Fiber's `ErrorHandler` will automatically catch it.
+## 📚 Documentación
 
-For example, if you are trying to retrieve a user from the database but the user is not found, and you want to return a 404 error, the code might look like this:
+- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Documentación completa de API con ejemplos de Insomnia
+- **[SETUP_GUIDE.md](./SETUP_GUIDE.md)** - Guía de instalación y configuración
+- **[ENDPOINTS_REFERENCE.md](./ENDPOINTS_REFERENCE.md)** - Referencia rápida de endpoints
+- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Resumen de implementación
 
-```go
-func (s *userService) GetUserByID(c *fiber.Ctx, id string) {
-	user := new(model.User)
+### Swagger UI
 
-	err := s.DB.WithContext(c.Context()).First(user, "id = ?", id).Error
+Accede a la documentación interactiva en: `http://localhost:3000/v1/docs`
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return fiber.NewError(fiber.StatusNotFound, "User not found")
-	}
-}
+## 🔌 Endpoints API
+
+### Autenticación
+```
+POST   /v1/auth/register        - Registrar usuario
+POST   /v1/auth/login           - Iniciar sesión
+POST   /v1/auth/refresh-tokens  - Renovar token
+POST   /v1/auth/logout          - Cerrar sesión
 ```
 
-## Validation
-
-Request data is validated using [Package validator](https://github.com/go-playground/validator). Check the [documentation](https://pkg.go.dev/github.com/go-playground/validator/v10) for more details on how to write validations.
-
-The validation schemas are defined in the `src/validation` directory and are used within the services by passing them to the validation logic. In this example, the CreateUser method in the userService uses the `validation.CreateUser` schema to validate incoming request data before processing it. The validation is handled by the `Validate.Struct` method, which checks the request data against the schema.
-
-```go
-import (
-	"app/src/model"
-	"app/src/validation"
-
-	"github.com/gofiber/fiber/v2"
-)
-
-func (s *userService) CreateUser(c *fiber.Ctx, req validation.CreateUser) (*model.User, error) {
-	if err := s.Validate.Struct(&req); err != nil {
-		return nil, err
-	}
-}
+### FIEL (Firma Electrónica)
+```
+POST   /v1/fiel       - Crear FIEL
+GET    /v1/fiel       - Obtener FIEL activa
+GET    /v1/fiel/all   - Listar todas
+PATCH  /v1/fiel/:id   - Actualizar
+DELETE /v1/fiel/:id   - Eliminar
 ```
 
-## Authentication
-
-To require authentication for certain routes, you can use the `Auth` middleware.
-
-```go
-import (
-	"app/src/controllers"
-	m "app/src/middleware"
-	"app/src/services"
-
-	"github.com/gofiber/fiber/v2"
-)
-
-func SetupRoutes(app *fiber.App, u services.UserService, t services.TokenService) {
-  userController := controllers.NewUserController(u, t)
-	app.Post("/users", m.Auth(u), userController.CreateUser)
-}
+### CIEC
+```
+POST   /v1/ciec        - Guardar CIEC
+PATCH  /v1/ciec        - Actualizar
+DELETE /v1/ciec        - Eliminar
+GET    /v1/ciec/status - Verificar estado
 ```
 
-These routes require a valid JWT access token in the Authorization request header using the Bearer schema. If the request does not contain a valid access token, an Unauthorized (401) error is thrown.
-
-**Generating Access Tokens**:
-
-An access token can be generated by making a successful call to the register (`POST /v1/auth/register`) or login (`POST /v1/auth/login`) endpoints. The response of these endpoints also contains refresh tokens (explained below).
-
-An access token is valid for 30 minutes. You can modify this expiration time by changing the `JWT_ACCESS_EXP_MINUTES` environment variable in the .env file.
-
-**Refreshing Access Tokens**:
-
-After the access token expires, a new access token can be generated, by making a call to the refresh token endpoint (`POST /v1/auth/refresh-tokens`) and sending along a valid refresh token in the request body. This call returns a new access token and a new refresh token.
-
-A refresh token is valid for 30 days. You can modify this expiration time by changing the `JWT_REFRESH_EXP_DAYS` environment variable in the .env file.
-
-## Authorization
-
-The `Auth` middleware can also be used to require certain rights/permissions to access a route.
-
-```go
-import (
-	"app/src/controllers"
-	m "app/src/middleware"
-	"app/src/services"
-
-	"github.com/gofiber/fiber/v2"
-)
-
-func SetupRoutes(app *fiber.App, u services.UserService, t services.TokenService) {
-  userController := controllers.NewUserController(u, t)
-	app.Post("/users", m.Auth(u, "manageUsers"), userController.CreateUser)
-}
+### Descarga de CFDIs
+```
+POST /v1/sat/download         - Descargar CFDIs
+POST /v1/sat/query-metadata   - Consultar metadatos
+POST /v1/sat/download-uuid    - Descargar por UUID
+GET  /v1/sat/stats            - Estadísticas
 ```
 
-In the example above, an authenticated user can access this route only if that user has the `manageUsers` permission.
-
-The permissions are role-based. You can view the permissions/rights of each role in the `src/config/roles.go` file.
-
-If the user making the request does not have the required permissions to access this route, a Forbidden (403) error is thrown.
-
-## Logging
-
-Import the logger from `src/utils/logrus.go`. It is using the [Logrus](https://github.com/sirupsen/logrus) logging library.
-
-Logging should be done according to the following severity levels (ascending order from most important to least important):
-
-```go
-import "app/src/utils"
-
-utils.Log.Panic('message') // Calls panic() after logging
-utils.Log.Fatal('message'); // Calls os.Exit(1) after logging
-utils.Log.Error('message');
-utils.Log.Warn('message');
-utils.Log.Info('message');
-utils.Log.Debug('message');
-utils.Log.Trace('message');
+### Reportes
+```
+GET /v1/reports/monthly     - Reporte mensual
+GET /v1/reports/yearly      - Reporte anual
+GET /v1/reports/date-range  - Por rango de fechas
+GET /v1/reports/expenses    - Resumen de gastos
+GET /v1/reports/income      - Resumen de ingresos
 ```
 
-> [!NOTE]
-> API request information (request url, response code, timestamp, etc.) are also automatically logged (using [Fiber-Logger](https://docs.gofiber.io/api/middleware/logger)).
+Ver [ENDPOINTS_REFERENCE.md](./ENDPOINTS_REFERENCE.md) para lista completa.
 
-## Linting
+## 💡 Ejemplos de Uso
 
-Linting is done using [golangci-lint](https://golangci-lint.run)
+### 1. Registrar Usuario
 
-See 👉 [How to install golangci-lint](https://golangci-lint.run/welcome/install)
+```bash
+curl -X POST http://localhost:3000/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Juan Pérez",
+    "email": "juan@ejemplo.com",
+    "password": "Password123!",
+    "role": "user"
+  }'
+```
 
-To modify the golangci-lint configuration, update the `.golangci.yml` file.
+### 2. Guardar FIEL
 
-## Contributing
+```bash
+curl -X POST http://localhost:3000/v1/fiel \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rfc": "XAXX010101000",
+    "certificado_cer": "BASE64_CER_CONTENT",
+    "clave_privada_key": "BASE64_KEY_CONTENT",
+    "password_key": "password123",
+    "nombre_certificado": "FIEL Principal",
+    "fecha_vigencia_inicio": "2024-01-01T00:00:00Z",
+    "fecha_vigencia_fin": "2028-01-01T00:00:00Z"
+  }'
+```
 
-Contributions are more than welcome! Please check out the [contributing guide](CONTRIBUTING.md).
+### 3. Descargar CFDIs
 
-If you find this boilerplate useful, consider giving it a star! ⭐
+```bash
+curl -X POST http://localhost:3000/v1/sat/download \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "auth_type": "fiel",
+    "tipo_cfdi": "emitidos",
+    "fecha_inicio": "2024-01-01",
+    "fecha_fin": "2024-01-31",
+    "save_to_database": true
+  }'
+```
 
-## Inspirations
+### 4. Obtener Reporte Mensual
 
-- [hagopj13/node-express-boilerplate](https://github.com/hagopj13/node-express-boilerplate)
-- [khannedy/golang-clean-architecture](https://github.com/khannedy/golang-clean-architecture)
-- [zexoverz/express-prisma-template](https://github.com/zexoverz/express-prisma-template)
+```bash
+curl -X GET "http://localhost:3000/v1/reports/monthly?year=2024&month=11" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
-## License
+Ver [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) para más ejemplos.
 
-[MIT](LICENSE)
+## 🐳 Despliegue
 
-## Contributors
+### Con Docker Compose
 
-[![Contributors](https://contrib.rocks/image?c=6&repo=indrayyana/go-fiber-boilerplate)](https://github.com/indrayyana/go-fiber-boilerplate/graphs/contributors)
+```bash
+# Producción
+docker-compose -f docker-compose.prod.yml up -d
+
+# Ver logs
+docker-compose logs -f backend
+docker-compose logs -f php-scraper
+
+# Detener
+docker-compose down
+```
+
+### Manual
+
+Ver [SETUP_GUIDE.md](./SETUP_GUIDE.md#despliegue-en-producción) para instrucciones detalladas.
+
+## 🧪 Testing
+
+```bash
+# Ejecutar todos los tests
+go test ./... -v
+
+# Tests específicos
+go test ./src/service/... -v
+
+# Con cobertura
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
+```
+
+## 📊 Estado del Proyecto
+
+### ✅ Completado
+
+- [x] Sistema de autenticación completo
+- [x] Gestión de FIEL y CIEC
+- [x] Integración con SAT vía PHP
+- [x] Control de límites por suscripción
+- [x] Reportes contables detallados
+- [x] Documentación completa
+- [x] Docker setup
+- [x] Migrations
+
+### 🔜 Próximas Funcionalidades
+
+- [ ] Frontend web (React/Vue)
+- [ ] WebSockets para notificaciones en tiempo real
+- [ ] Cola de trabajos con Redis
+- [ ] Exportación de reportes a PDF/Excel
+- [ ] Multi-tenancy
+- [ ] Integración con sistemas contables externos
+
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas! Por favor:
+
+1. Fork el proyecto
+2. Crea tu Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push al Branch (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+Ver [CONTRIBUTING.md](./CONTRIBUTING.md) para más detalles.
+
+## 📝 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+
+## 👥 Autores
+
+- **Tu Nombre** - *Trabajo Inicial* - [tu-usuario](https://github.com/tu-usuario)
+
+## 🙏 Agradecimientos
+
+- [PhpCfdi/CfdiSatScraper](https://github.com/phpcfdi/cfdisat-scraper) - Librería para scraping del SAT
+- [Fiber](https://gofiber.io/) - Framework web para Go
+- [BoxFactura](https://boxfactura.com/) - Servicio de resolución de captchas
+
+## 📞 Soporte
+
+- 📧 Email: soporte@tudominio.com
+- 📖 Docs: [Ver documentación completa](./API_DOCUMENTATION.md)
+- 🐛 Issues: [GitHub Issues](https://github.com/tu-usuario/sat-bridge-pro-api/issues)
+
+---
+
+**Desarrollado con ❤️ para la comunidad contable mexicana**
+
+![Made in Mexico](https://img.shields.io/badge/Made%20in-Mexico-green?style=flat&labelColor=red)
