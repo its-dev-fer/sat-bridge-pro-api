@@ -21,7 +21,7 @@ func Routes(app *fiber.App, db *gorm.DB) {
 
 	// NUEVO: Servicio de datos fiscales usando config.EncryptionKey
 	datosFiscalesService := service.NewDatosFiscalesService(db, validate, config.EncryptionKey)
-	satMasivaService := service.NewSatMasivaService(validate, datosFiscalesService)
+	satMasivaService := service.NewSatMasivaService(db, validate, datosFiscalesService)
 
 	v1 := app.Group("/v1")
 

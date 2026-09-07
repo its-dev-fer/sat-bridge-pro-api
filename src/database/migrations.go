@@ -24,9 +24,14 @@ func RunMigrations(db *gorm.DB) {
 			utils.Log.Errorf("Error reading migration file %s: %v", file, err)
 			return
 		}
-		if err := db.Exec(string(content)).Error; err != nil {
-			utils.Log.Errorf("Error executing migration file %s: %v", file, err)
-			return
+		for _, stmt := range strings.Split(string(content), ";") {
+			stmt = strings.TrimSpace(stmt)
+			if stmt == "" {
+				continue
+			}
+			if err := db.Exec(stmt).Error; err != nil {
+				utils.Log.Errorf("Error executing migration file %s: %v", file, err)
+			}
 		}
 	}
 }

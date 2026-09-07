@@ -159,3 +159,54 @@ func (c *SatMasivaController) Backfill(ctx *fiber.Ctx) error {
 		Code: fiber.StatusOK, Status: "success", Message: "Backfill completo", Data: data,
 	})
 }
+
+// @Tags         Descarga Masiva SAT
+// @Summary      Sync status
+// @Security     BearerAuth
+// @Produce      json
+// @Router       /descarga-masiva/sync [get]
+// @Success      200  {object}  response.SuccessWithData
+func (c *SatMasivaController) SyncStatus(ctx *fiber.Ctx) error {
+	user, _ := ctx.Locals("user").(*model.User)
+	data, err := c.SatMasivaService.SyncStatus(user.ID)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(fiber.StatusOK).JSON(response.SuccessWithData{
+		Code: fiber.StatusOK, Status: "success", Message: "Sync status", Data: data,
+	})
+}
+
+// @Tags         Descarga Masiva SAT
+// @Summary      Start year sync job
+// @Security     BearerAuth
+// @Produce      json
+// @Router       /descarga-masiva/sync [post]
+// @Success      200  {object}  response.SuccessWithData
+func (c *SatMasivaController) StartSync(ctx *fiber.Ctx) error {
+	user, _ := ctx.Locals("user").(*model.User)
+	data, err := c.SatMasivaService.StartSync(ctx, user.ID)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(fiber.StatusOK).JSON(response.SuccessWithData{
+		Code: fiber.StatusOK, Status: "success", Message: "Job iniciado", Data: data,
+	})
+}
+
+// @Tags         Descarga Masiva SAT
+// @Summary      Abort sync job
+// @Security     BearerAuth
+// @Produce      json
+// @Router       /descarga-masiva/sync/abort [post]
+// @Success      200  {object}  response.SuccessWithData
+func (c *SatMasivaController) AbortSync(ctx *fiber.Ctx) error {
+	user, _ := ctx.Locals("user").(*model.User)
+	data, err := c.SatMasivaService.AbortSync(user.ID)
+	if err != nil {
+		return err
+	}
+	return ctx.Status(fiber.StatusOK).JSON(response.SuccessWithData{
+		Code: fiber.StatusOK, Status: "success", Message: "Job abortado", Data: data,
+	})
+}

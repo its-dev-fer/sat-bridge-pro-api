@@ -13,6 +13,7 @@ import (
 	"errors"
 	"io"
 	"mime/multipart"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -158,6 +159,7 @@ func (s *datosFiscalesService) LoadFIEL(c *fiber.Ctx, userID uuid.UUID) ([]byte,
 	if err != nil {
 		return nil, nil, "", fiber.NewError(fiber.StatusInternalServerError, "Error decrypting password")
 	}
+	pass = strings.TrimSpace(pass)
 	cer, err := base64.StdEncoding.DecodeString(cerB64)
 	if err != nil {
 		return nil, nil, "", fiber.NewError(fiber.StatusInternalServerError, "Error decoding certificate")

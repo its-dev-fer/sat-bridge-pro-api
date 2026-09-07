@@ -18,4 +18,7 @@ func SatMasivaRoutes(v1 fiber.Router, sat service.SatMasivaService, u service.Us
 	g.Post("/verificar", ctrl.Verify)
 	g.Post("/descargar", ctrl.Download)
 	g.Post("/backfill", ctrl.Backfill)
+	g.Get("/sync", ctrl.SyncStatus)
+	g.Post("/sync", ctrl.StartSync)
+	g.Post("/sync/abort", ctrl.AbortSync)
 }

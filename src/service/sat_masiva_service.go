@@ -5,6 +5,8 @@ import (
 	"app/src/satws"
 	"app/src/utils"
 	"app/src/validation"
+	"context"
+	"sync"
 	"time"
 
 	nibussatws "github.com/InsaneTreset/nibus-sat-ws"
@@ -15,6 +17,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type SatMasivaService interface {
@@ -24,20 +27,30 @@ type SatMasivaService interface {
 	Verify(c *fiber.Ctx, userID uuid.UUID, req *validation.SatVerifyRequest) (map[string]any, error)
 	Download(c *fiber.Ctx, userID uuid.UUID, req *validation.SatDownloadRequest) ([]byte, any, error)
 	Backfill(c *fiber.Ctx, userID uuid.UUID, req *validation.SatBackfillRequest) (map[string]any, error)
+	SyncStatus(userID uuid.UUID) (map[string]any, error)
+	StartSync(c *fiber.Ctx, userID uuid.UUID) (map[string]any, error)
+	AbortSync(userID uuid.UUID) (map[string]any, error)
 }
 
 type satMasivaService struct {
 	Log                  *logrus.Logger
+	DB                   *gorm.DB
 	Validate             *validator.Validate
 	DatosFiscalesService DatosFiscalesService
+	cancels              map[uuid.UUID]context.CancelFunc
+	cancelMu             sync.Mutex
 }
 
-func NewSatMasivaService(validate *validator.Validate, datos DatosFiscalesService) SatMasivaService {
-	return &satMasivaService{
+func NewSatMasivaService(db *gorm.DB, validate *validator.Validate, datos DatosFiscalesService) SatMasivaService {
+	s := &satMasivaService{
 		Log:                  utils.Log,
+		DB:                   db,
 		Validate:             validate,
 		DatosFiscalesService: datos,
+		cancels:              map[uuid.UUID]context.CancelFunc{},
 	}
+	s.failStuckJobs()
+	return s
 }
 
 func (s *satMasivaService) client(c *fiber.Ctx, userID uuid.UUID, kind string) (*nservice.Client, error) {
