@@ -29,6 +29,7 @@ var (
 	GoogleClientSecret  string
 	RedirectURL         string
 	EncryptionKey       string
+	SATProxy            string
 )
 
 func init() {
@@ -65,6 +66,7 @@ func init() {
 	GoogleClientSecret = viper.GetString("GOOGLE_CLIENT_SECRET")
 	RedirectURL = viper.GetString("REDIRECT_URL")
 	EncryptionKey = viper.GetString("ENCRYPTION_KEY")
+	SATProxy = viper.GetString("SAT_PROXY")
 }
 
 func loadConfig() {

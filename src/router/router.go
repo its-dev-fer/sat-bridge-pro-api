@@ -18,9 +18,10 @@ func Routes(app *fiber.App, db *gorm.DB) {
 	userService := service.NewUserService(db, validate)
 	tokenService := service.NewTokenService(db, validate, userService)
 	authService := service.NewAuthService(db, validate, userService, tokenService)
-	
+
 	// NUEVO: Servicio de datos fiscales usando config.EncryptionKey
 	datosFiscalesService := service.NewDatosFiscalesService(db, validate, config.EncryptionKey)
+	satMasivaService := service.NewSatMasivaService(validate, datosFiscalesService)
 
 	v1 := app.Group("/v1")
 
@@ -28,9 +29,10 @@ func Routes(app *fiber.App, db *gorm.DB) {
 	HealthCheckRoutes(v1, healthCheckService)
 	AuthRoutes(v1, authService, userService, tokenService, emailService)
 	UserRoutes(v1, userService, tokenService)
-	
+
 	// NUEVA: Ruta de datos fiscales
 	DatosFiscalesRoutes(v1, datosFiscalesService, userService)
+	SatMasivaRoutes(v1, satMasivaService, userService)
 
 	if !config.IsProd {
 		DocsRoutes(v1)

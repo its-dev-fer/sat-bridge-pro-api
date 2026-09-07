@@ -25,6 +25,7 @@ import (
 type DatosFiscalesService interface {
 	CreateDatosFiscales(c *fiber.Ctx, userID uuid.UUID, req *validation.DatosFiscalesRequest, cerFile, keyFile *multipart.FileHeader) error
 	GetDatosFiscalesByUserID(c *fiber.Ctx, userID uuid.UUID) (*model.DatosFiscalesSAT, error)
+	LoadFIEL(c *fiber.Ctx, userID uuid.UUID) (cer, key []byte, pass string, err error)
 	UpdateDatosFiscales(c *fiber.Ctx, userID uuid.UUID, req *validation.DatosFiscalesRequest) error
 	DeleteDatosFiscales(c *fiber.Ctx, userID uuid.UUID) error
 }
@@ -140,6 +141,34 @@ func (s *datosFiscalesService) GetDatosFiscalesByUserID(c *fiber.Ctx, userID uui
 	return datosFiscales, nil
 }
 
+func (s *datosFiscalesService) LoadFIEL(c *fiber.Ctx, userID uuid.UUID) ([]byte, []byte, string, error) {
+	row, err := s.GetDatosFiscalesByUserID(c, userID)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	cerB64, err := s.decrypt(row.CerB64Encriptado)
+	if err != nil {
+		return nil, nil, "", fiber.NewError(fiber.StatusInternalServerError, "Error decrypting certificate")
+	}
+	keyB64, err := s.decrypt(row.KeyB64Encriptado)
+	if err != nil {
+		return nil, nil, "", fiber.NewError(fiber.StatusInternalServerError, "Error decrypting key")
+	}
+	pass, err := s.decrypt(row.PasswordEfirmaEncrip)
+	if err != nil {
+		return nil, nil, "", fiber.NewError(fiber.StatusInternalServerError, "Error decrypting password")
+	}
+	cer, err := base64.StdEncoding.DecodeString(cerB64)
+	if err != nil {
+		return nil, nil, "", fiber.NewError(fiber.StatusInternalServerError, "Error decoding certificate")
+	}
+	key, err := base64.StdEncoding.DecodeString(keyB64)
+	if err != nil {
+		return nil, nil, "", fiber.NewError(fiber.StatusInternalServerError, "Error decoding key")
+	}
+	return cer, key, pass, nil
+}
+
 func (s *datosFiscalesService) UpdateDatosFiscales(c *fiber.Ctx, userID uuid.UUID, req *validation.DatosFiscalesRequest) error {
 	if err := s.Validate.Struct(req); err != nil {
 		return err
@@ -249,4 +278,29 @@ func (s *datosFiscalesService) encrypt(plaintext string) (string, error) {
 	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
 
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
+}
+
+func (s *datosFiscalesService) decrypt(ciphertextB64 string) (string, error) {
+	raw, err := base64.StdEncoding.DecodeString(ciphertextB64)
+	if err != nil {
+		return "", err
+	}
+	hash := sha256.Sum256([]byte(s.EncryptionKey))
+	block, err := aes.NewCipher(hash[:])
+	if err != nil {
+		return "", err
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+	nonceSize := gcm.NonceSize()
+	if len(raw) < nonceSize {
+		return "", errors.New("ciphertext too short")
+	}
+	plain, err := gcm.Open(nil, raw[:nonceSize], raw[nonceSize:], nil)
+	if err != nil {
+		return "", err
+	}
+	return string(plain), nil
 }
