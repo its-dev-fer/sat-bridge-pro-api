@@ -1,10 +1,12 @@
 package database
 
 import (
-	"gorm.io/gorm"
+	"app/src/utils"
 	"os"
 	"path/filepath"
-	"app/src/utils"
+	"strings"
+
+	"gorm.io/gorm"
 )
 
 func RunMigrations(db *gorm.DB) {
@@ -14,12 +16,14 @@ func RunMigrations(db *gorm.DB) {
 		return
 	}
 	for _, file := range files {
+		if strings.HasSuffix(file, ".down.sql") {
+			continue
+		}
 		content, err := os.ReadFile(file)
 		if err != nil {
 			utils.Log.Errorf("Error reading migration file %s: %v", file, err)
 			return
 		}
-		// Execute the SQL commands in the migration file
 		if err := db.Exec(string(content)).Error; err != nil {
 			utils.Log.Errorf("Error executing migration file %s: %v", file, err)
 			return

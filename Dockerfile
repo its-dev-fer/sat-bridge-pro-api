@@ -15,4 +15,5 @@ COPY --from=build /app/main .
 COPY --from=build /app/.env .
 
 EXPOSE 3000
+COPY --from=build /app/src/database ./src/database
 CMD ["./main"]
