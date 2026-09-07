@@ -2,6 +2,7 @@ package service
 
 import (
 	"app/src/model"
+	"app/src/satws"
 	"app/src/utils"
 	"app/src/validation"
 	"crypto/aes"
@@ -69,6 +70,19 @@ func (s *datosFiscalesService) CreateDatosFiscales(c *fiber.Ctx, userID uuid.UUI
 	if err != nil {
 		s.Log.Errorf("Error processing .key file: %+v", err)
 		return fiber.NewError(fiber.StatusBadRequest, "Error processing key file")
+	}
+
+	cerRaw, err := base64.StdEncoding.DecodeString(cerB64)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Error processing certificate file")
+	}
+	keyRaw, err := base64.StdEncoding.DecodeString(keyB64)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Error processing key file")
+	}
+	if _, err := satws.NewCFDIClient(cerRaw, keyRaw, req.Password); err != nil {
+		s.Log.Errorf("Invalid e.firma: %+v", err)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid or expired e.firma")
 	}
 
 	cerEncrypted, err := s.encrypt(cerB64)
